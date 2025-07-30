@@ -16,7 +16,7 @@
 #
 ###############################################################################
 """
-The PID Issuer Web service is a component of the PID Provider backend. 
+The PID Issuer Web service is a component of the PID Provider backend.
 Its main goal is to issue the PID in cbor/mdoc (ISO 18013-5 mdoc) and SD-JWT format.
 
 This __init__.py serves double duty: it will contain the application factory, and it tells Python that the flask directory should be treated as a package.
@@ -71,7 +71,8 @@ def remove_keys(obj, keys_to_remove):
         return new_list if new_list else None
     else:
         return obj
-    
+
+
 def setup_metadata():
     global oidc_metadata
     global oidc_metadata_clean
@@ -118,11 +119,14 @@ def setup_metadata():
 
     oidc_metadata["credential_configurations_supported"] = credentials_supported
 
-    
-    oidc_metadata_clean["credential_configurations_supported"] = remove_keys(copy.deepcopy(credentials_supported),{"issuer_conditions", "issuer_config", "overall_issuer_conditions", "source"})
+    oidc_metadata_clean["credential_configurations_supported"] = remove_keys(
+        copy.deepcopy(credentials_supported),
+        {"issuer_conditions", "issuer_config", "overall_issuer_conditions", "source"},
+    )
 
 
 setup_metadata()
+
 
 def setup_trusted_CAs():
     global trusted_CAs

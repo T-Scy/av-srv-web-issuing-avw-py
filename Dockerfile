@@ -17,16 +17,9 @@ RUN mkdir -p /tmp/log_dev
 RUN chmod -R 755 /tmp/log_dev
 
 
-ARG GITHUB_TOKEN
-
-RUN git clone https://x-access-token:${GITHUB_TOKEN}@github.com/T-Scy/av-srv-web-issuing-avw-py.git /root/eudi-srv-web-issuing-eudiw-py
+RUN git clone https://github.com/eu-digital-identity-wallet/av-srv-web-issuing-avw-py.git /root/eudi-srv-web-issuing-eudiw-py
 
 WORKDIR /root/av-srv-web-issuing-eudiw-py
-
-RUN --mount=type=secret,id=github_token \
-    git clone https://x-access-token:$(cat /run/secrets/github_token)@github.com/T-Scy/av-srv-web-issuing-avw-py.git /tmp/repo && \
-    cp -r /tmp/repo/. . && \
-    rm -rf /tmp/repo
 
 RUN python3 -m venv venv
 
