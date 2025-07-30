@@ -30,7 +30,7 @@ class ConfCountries:
     # supported countries
     supported_countries = {
         formCountry: {
-            "name": "FormEU",
+            "name": "Trusted Issuer",
             "privkey": cfgserv.privKey_path + "AgeVerificationDS-001.pem",
             "privkey_passwd": None,  # None or bytes
             "cert": cfgserv.trusted_CAs_path + "AgeVerificationDS-001_cert.der",
@@ -41,7 +41,7 @@ class ConfCountries:
             "dynamic_R2": cfgserv.service_url + "dynamic/form_R2",
         },
         "AV2": {
-            "name": "FormAV (Not in Trusted List. Test flow only)",
+            "name": "Non-Trusted Issuer",
             "privkey": cfgserv.privKey_path + "/bak/AgeVerificationDS-001.pem",
             "privkey_passwd": None,  # None or bytes
             "cert": cfgserv.trusted_CAs_path + "/bak/AgeVerificationDS-001_cert.der",
