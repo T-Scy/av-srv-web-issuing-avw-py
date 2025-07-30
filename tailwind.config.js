@@ -15,7 +15,7 @@ module.exports = {
     'duration-300',
     'transform',
   ],
-  darkMode: false,
+  media: false,
   theme: {
     extend: {
       fontFamily: {
