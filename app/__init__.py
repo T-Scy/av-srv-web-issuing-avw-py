@@ -45,10 +45,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 from app_config.config_service import ConfService as cfgserv
 
-
 # Log
 from .app_config.config_service import ConfService as log
-
 
 oidc_metadata = {}
 oidc_metadata_clean = {}

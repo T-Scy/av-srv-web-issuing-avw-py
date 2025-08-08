@@ -14,14 +14,14 @@ services:
       LOG_PATH: "/app/log"
       EIDAS_NODE_URL: "https://preprod.issuer.eudiw.dev/EidasNode/"
       DYNAMIC_PRESENTATION_URL: "https://dev.verifier-backend.eudiw.dev/ui/presentations/"
-      EIDASNODE_LIGHT_SECRET:
-      REVOCATION_API_KEY:
-      REVOCATION_SERVICE_URL: 
-      NOUNCE_KEY:
-      WALLET_TEST_URL:
+      EIDASNODE_LIGHT_SECRET: "teste"
+      REVOCATION_API_KEY: "teste"
+      REVOCATION_SERVICE_URL: "teste" 
+      NOUNCE_KEY: "teste"
+      WALLET_TEST_URL: "teste"
       
-
     # local path : container path
     volumes:
-      - local_path:/app/certs/CAs
-      - local_path:/app/privKeys
+      - /cert:/app/certs/CAs
+      - /privKey:/app/privKeys
+

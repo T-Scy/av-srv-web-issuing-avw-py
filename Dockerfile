@@ -1,23 +1,36 @@
-FROM python:3.9.22-slim-bullseye
+FROM python:3.9.22-slim-bookworm
 
 WORKDIR /app
-
-COPY  /app . 
-
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     build-essential \
     && rm -rf /var/lib/apt/lists/* 
 
-ENV NODE_VERSION=20.12.2
-RUN curl -fsSL https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz | tar -xJ -C /usr/local --strip-components=1 && \
-    ln -s /usr/local/bin/node /usr/bin/node && \
-    ln -s /usr/local/bin/npm /usr/bin/npm
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs build-essential && \
+    npm install -g npm@10.6.0 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN node -v && npm -v
+RUN npm cache clean --force && \
+    npm install -g n && \
+    n 20.12.2 && \
+    npm install -g npm@10.6.0
 
-RUN npm install -g npm@10.6.0 && npm -v
+# COPY  package*.json .
+
+# COPY /assets .
+
+# COPY tailwind.config.js .
+
+COPY . .
+
+RUN npm install
+
+RUN npm run build
+
+COPY /app ./
 
 RUN python -m pip install --upgrade pip
 
