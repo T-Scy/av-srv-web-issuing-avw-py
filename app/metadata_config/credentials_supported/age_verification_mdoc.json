@@ -222,21 +222,6 @@
                   "locale":"en"
                }
             ]
-         },
-         {
-            "path":[
-               "eu.europa.ec.av.1",
-               "portrait"
-            ],
-            "mandatory":false,
-            "value_type":"jpeg",
-            "source":"user",
-            "display":[
-               {
-                  "name":"Portrait Image",
-                  "locale":"en"
-               }
-            ]
          }
       ],
       "issuer_config":{
