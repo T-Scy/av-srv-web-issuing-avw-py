@@ -16,7 +16,7 @@
 #
 ###############################################################################
 """
-The PID Issuer Web service is a component of the PID Provider backend. 
+The PID Issuer Web service is a component of the PID Provider backend.
 Its main goal is to issue the PID and MDL in cbor/mdoc (ISO 18013-5 mdoc) and SD-JWT format.
 
 
@@ -62,27 +62,28 @@ def mdocFormatter(data, credential_metadata, country, device_publickey):
     Return: Returns the base64 urlsafe mdoc
     """
     # Load the private key
-    with open(
-        cfgcountries.supported_countries[country]["privkey"], "rb"
-    ) as key_file:
+    with open(cfgcountries.supported_countries[country]["privkey"], "rb") as key_file:
         private_key = serialization.load_pem_private_key(
             key_file.read(),
-            password=cfgcountries.supported_countries[country][
-                "privkey_passwd"
-            ],
+            password=cfgcountries.supported_countries[country]["privkey_passwd"],
         )
 
     # Extract the key parameters
     priv_d = private_key.private_numbers().private_value
-    
-    issuance_date = datetime.datetime.today()
-    expiry_date = issuance_date + datetime.timedelta(days=credential_metadata["issuer_config"]["validity"])
+
+    issuance_date = datetime.datetime.now(datetime.timezone.utc).replace(
+        hour=0, minute=0, second=0
+    )
+
+    expiry_date = issuance_date + datetime.timedelta(
+        days=credential_metadata["issuer_config"]["validity"]
+    )
 
     validity = {
-        "issuance_date": issuance_date.strftime('%Y-%m-%d'),
-        "expiry_date": expiry_date.strftime('%Y-%m-%d')
+        "issuance_date": issuance_date,
+        "expiry_date": expiry_date,
     }
-    
+
     """ if doctype == "org.iso.18013.5.1.mDL":
 
         # data["org.iso.18013.5.1"]["signature_usual_mark"] = base64.urlsafe_b64decode(
@@ -114,7 +115,7 @@ def mdocFormatter(data, credential_metadata, country, device_publickey):
             "issuance_date": data[first_key]["issuance_date"],
             "expiry_date": data[first_key]["expiry_date"],
         } """
-    
+
     namespace = credential_metadata["issuer_config"]["namespace"]
 
     if "portrait" in data[namespace]:
@@ -123,7 +124,9 @@ def mdocFormatter(data, credential_metadata, country, device_publickey):
         )
 
     if "user_pseudonym" in data[namespace]:
-        data[credential_metadata["doctype"]]["user_pseudonym"] = data[credential_metadata["doctype"]]["user_pseudonym"].encode('utf-8')
+        data[credential_metadata["doctype"]]["user_pseudonym"] = data[
+            credential_metadata["doctype"]
+        ]["user_pseudonym"].encode("utf-8")
 
     # Construct the COSE private key
     cose_pkey = {
@@ -139,13 +142,22 @@ def mdocFormatter(data, credential_metadata, country, device_publickey):
 
     revocation_json = None
     if revocation_api_key:
-        payload = "doctype=" + credential_metadata["doctype"] + "&country=" + country + "&expiry_date=" + validity["expiry_date"]
+        payload = (
+            "doctype="
+            + credential_metadata["doctype"]
+            + "&country="
+            + country
+            + "&expiry_date="
+            + validity["expiry_date"].strftime("%Y-%m-%d")
+        )
         headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Api-Key': revocation_api_key
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Api-Key": revocation_api_key,
         }
 
-        response = requests.post(cfgservice.revocation_service_url, headers=headers, data=payload)
+        response = requests.post(
+            cfgservice.revocation_service_url, headers=headers, data=payload
+        )
 
         if response.status_code == 200:
             revocation_json = response.json()
@@ -156,11 +168,12 @@ def mdocFormatter(data, credential_metadata, country, device_publickey):
         validity=validity,
         devicekeyinfo=device_publickey,
         cert_path=cfgcountries.supported_countries[country]["cert"],
-        revocation = revocation_json
-                    
-          )
+        revocation=revocation_json,
+    )
 
-    return urlsafe_b64encode_nopad(mdoci.dump()) #base64.urlsafe_b64encode(mdoci.dump()).decode("utf-8")
+    return urlsafe_b64encode_nopad(
+        mdoci.dump()
+    )  # base64.urlsafe_b64encode(mdoci.dump()).decode("utf-8")
 
 
 def cbor2elems(mdoc):
@@ -197,7 +210,8 @@ def cbor2elems(mdoc):
         d[n] = l
     return d
 
-def sdjwtNestedClaims(claims,vct):
+
+def sdjwtNestedClaims(claims, vct):
 
     nestedDict = {}
 
@@ -205,33 +219,33 @@ def sdjwtNestedClaims(claims,vct):
         if isinstance(value, list) and claim != "nationalities" and len(value) > 1:
             subClaims = []
             for element in value:
-                if isinstance(element,dict):
+                if isinstance(element, dict):
                     subClaimsElement = {}
                     for attribute, value2 in element.items():
-                        subClaimsElement.update({SDObj(value=attribute):value2})
+                        subClaimsElement.update({SDObj(value=attribute): value2})
 
                 subClaims.append(subClaimsElement)
 
-            nestedDict.update({SDObj(value=claim):subClaims})
+            nestedDict.update({SDObj(value=claim): subClaims})
 
         elif isinstance(value, list) and claim != "nationalities" and len(value) == 1:
             subClaims = {}
             for element in value:
-                if isinstance(element,dict):
+                if isinstance(element, dict):
                     for attribute, value2 in element.items():
-                        subClaims.update({SDObj(value=attribute):value2})
+                        subClaims.update({SDObj(value=attribute): value2})
 
-            nestedDict.update({SDObj(value=claim):subClaims})
+            nestedDict.update({SDObj(value=claim): subClaims})
 
         elif isinstance(value, dict):
             subClaims = {}
             for attribute, value2 in value.items():
-                subClaims.update({SDObj(value=attribute):value2})
+                subClaims.update({SDObj(value=attribute): value2})
 
-            nestedDict.update({SDObj(value=claim):subClaims})
+            nestedDict.update({SDObj(value=claim): subClaims})
 
         else:
-            nestedDict.update({SDObj(value=claim):value})
+            nestedDict.update({SDObj(value=claim): value})
 
     return nestedDict
 
@@ -253,7 +267,6 @@ def sdjwtNestedClaims(claims,vct):
 
         
         elif  len(subClaim) == 3: """
-            
 
 
 def sdjwtFormatter(PID, country):
@@ -269,9 +282,8 @@ def sdjwtFormatter(PID, country):
     hash_object = hashlib.sha256()
 
     seed = int(hash_object.hexdigest(), 16)
-    #doctype = PID["credential_metadata"]["issuer_config"]["doctype"]
+    # doctype = PID["credential_metadata"]["issuer_config"]["doctype"]
 
-    
     PID_Claims_data = PID["data"]["claims"]
     iat = DatestringFormatter(PID_Claims_data["issuance_date"])
     PID_Claims_data.pop("issuance_date")
@@ -282,86 +294,81 @@ def sdjwtFormatter(PID, country):
 
     PID_Claims_data.pop("expiry_date")
 
-    #jti = str(uuid4())
+    # jti = str(uuid4())
 
     pid_data = PID.get("data", {})
     device_key = PID["device_publickey"]
 
-    vct = PID["credential_metadata"]["vct"] #doctype2vct(doctype)
+    vct = PID["credential_metadata"]["vct"]  # doctype2vct(doctype)
 
     doctype = vct2doctype(vct)
 
     revocation_json = None
 
     if revocation_api_key:
-        payload = "doctype=" + doctype + "&country=" + country + "&expiry_date=" + validity
+        payload = (
+            "doctype=" + doctype + "&country=" + country + "&expiry_date=" + validity
+        )
         headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Api-Key': revocation_api_key
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Api-Key": revocation_api_key,
         }
 
-        response = requests.post(cfgservice.revocation_service_url, headers=headers, data=payload)
+        response = requests.post(
+            cfgservice.revocation_service_url, headers=headers, data=payload
+        )
 
         if response.status_code == 200:
             revocation_json = response.json()
-            
 
     claims = {
         "iss": cfgservice.service_url[:-1],
-        #"iss": "https://issuer.eudiw.dev",
-        #"jti": jti,
+        # "iss": "https://issuer.eudiw.dev",
+        # "jti": jti,
         "iat": iat,
         # "nbf": iat,
         "exp": exp,
-        #"status": "validation status URL",
-        #"vct":"urn:"+ doctype,
-        "vct":vct,
+        # "status": "validation status URL",
+        # "vct":"urn:"+ doctype,
+        "vct": vct,
     }
 
     if revocation_json:
-        claims.update({"status":revocation_json})
+        claims.update({"status": revocation_json})
 
     datafinal = {}
 
     JWT_PID_DATA = {}
 
-    #for x, value in enumerate(list(pid_data["claims"].keys())):
+    # for x, value in enumerate(list(pid_data["claims"].keys())):
 
-        #namespace = list(pid_data["claims"].keys())[x]
-    #PID_DATA = pid_data["claims"]
-    
-    #JWT_PID_DATA.update(DATA_sd_jwt(PID_DATA))
+    # namespace = list(pid_data["claims"].keys())[x]
+    # PID_DATA = pid_data["claims"]
+
+    # JWT_PID_DATA.update(DATA_sd_jwt(PID_DATA))
 
     """ for x, value in enumerate(list(pid_data["claims"].keys())):
         namespace = list(pid_data["claims"].keys())[x]
         PID_DATA = pid_data["claims"]
         JWT_PID_DATA.update(DATA_sd_jwt(PID_DATA)) """
 
-    JWT_PID_DATA.update(sdjwtNestedClaims(pid_data["claims"],vct))
+    JWT_PID_DATA.update(sdjwtNestedClaims(pid_data["claims"], vct))
 
     datafinal.update(JWT_PID_DATA)
 
     claims.update(datafinal)
 
-    with open(
-        cfgcountries.supported_countries[country]["cert"], "rb"
-    ) as certificate:
-         certificate_data=certificate.read()
-    
-    certificate_base64=base64.b64encode(certificate_data).decode("utf-8")
-    x5c={
-        "x5c":[]
-    }
+    with open(cfgcountries.supported_countries[country]["cert"], "rb") as certificate:
+        certificate_data = certificate.read()
+
+    certificate_base64 = base64.b64encode(certificate_data).decode("utf-8")
+    x5c = {"x5c": []}
     x5c["x5c"].append(certificate_base64)
 
-    with open(
-        cfgcountries.supported_countries[country]["privkey"], "rb"
-    ) as key_file:
+    with open(cfgcountries.supported_countries[country]["privkey"], "rb") as key_file:
         private_key = serialization.load_pem_private_key(
             key_file.read(),
-            password=cfgcountries.supported_countries[country][
-                "privkey_passwd"
-            ],
+            password=cfgcountries.supported_countries[country]["privkey_passwd"],
         )
 
     priv_d = private_key.private_numbers().private_value
@@ -401,13 +408,13 @@ def sdjwtFormatter(PID, country):
 
     ### Produce SD-JWT and SVC for selected example
     SDJWTIssuer.unsafe_randomness = False
-    SDJWTIssuer.SD_JWT_HEADER="dc+sd-jwt"
+    SDJWTIssuer.SD_JWT_HEADER = "dc+sd-jwt"
     sdjwt_at_issuer = SDJWTIssuer(
         claims,
         keys["issuer_key"],
         keys["holder_key"],
         add_decoy_claims=False,
-        extra_header_parameters=x5c
+        extra_header_parameters=x5c,
     )
 
     # sdjwt_at_holder = SDJWTHolder(sdjwt_at_issuer.sd_jwt_issuance)
@@ -423,25 +430,25 @@ def sdjwtFormatter(PID, country):
 
 def DATA_sd_jwt(PID):
     Data = {}
-    age_equal_or_over={}
-    place_of_birth={}
-    address_dict={}
+    age_equal_or_over = {}
+    place_of_birth = {}
+    address_dict = {}
     for i in PID:
         if i in cfgservice.Registered_claims:
 
             r = cfgservice.Registered_claims.get(i)
 
             if "age_equal_or_over" in r:
-                subAge=r.split(".")
-                age_equal_or_over.update({subAge[1]:PID[i]})
+                subAge = r.split(".")
+                age_equal_or_over.update({subAge[1]: PID[i]})
 
             elif "place_of_birth" in r:
-                place_Birth=r.split(".")
-                place_of_birth.update({place_Birth[1]:PID[i]})
+                place_Birth = r.split(".")
+                place_of_birth.update({place_Birth[1]: PID[i]})
 
             elif "address" in r:
-                address=r.split(".")
-                address_dict.update({address[1]:PID[i]})
+                address = r.split(".")
+                address_dict.update({address[1]: PID[i]})
 
             else:
                 data = {SDObj(value=r): PID[i]}
@@ -452,25 +459,26 @@ def DATA_sd_jwt(PID):
             Data.update(data)
 
     if age_equal_or_over:
-            data = {SDObj(value="age_equal_or_over"): recursive(age_equal_or_over)}
-            Data.update(data)
+        data = {SDObj(value="age_equal_or_over"): recursive(age_equal_or_over)}
+        Data.update(data)
 
     if place_of_birth:
-            data = {SDObj(value="place_of_birth"): recursive(place_of_birth)}
-            Data.update(data)
+        data = {SDObj(value="place_of_birth"): recursive(place_of_birth)}
+        Data.update(data)
     if address_dict:
-            data = {SDObj(value="address"): recursive(address_dict)}
-            Data.update(data)        
-            
+        data = {SDObj(value="address"): recursive(address_dict)}
+        Data.update(data)
+
     return Data
 
 
 def recursive(dict):
-    temp_dic={}
+    temp_dic = {}
     for f in dict:
         recursive = {SDObj(value=f): dict[f]}
         temp_dic.update(recursive)
-    return temp_dic 
+    return temp_dic
+
 
 def DatestringFormatter(date):
     date_objectiat = datetime.datetime.strptime(date, "%Y-%m-%d")
@@ -493,27 +501,45 @@ def KeyData(key, type):
 
     if type == "public":
         # Extract the x and y coordinates from the public key
-        x = key.public_numbers().x.to_bytes(
-            (key.public_numbers().x.bit_length() + 7) // 8,  # Number of bytes needed
-            "big",  # Byte order
-        ).rjust(32, b'\x00')
+        x = (
+            key.public_numbers()
+            .x.to_bytes(
+                (key.public_numbers().x.bit_length() + 7)
+                // 8,  # Number of bytes needed
+                "big",  # Byte order
+            )
+            .rjust(32, b"\x00")
+        )
 
-        y = key.public_numbers().y.to_bytes(
-            (key.public_numbers().y.bit_length() + 7) // 8,  # Number of bytes needed
-            "big",  # Byte order
-        ).rjust(32, b'\x00')
+        y = (
+            key.public_numbers()
+            .y.to_bytes(
+                (key.public_numbers().y.bit_length() + 7)
+                // 8,  # Number of bytes needed
+                "big",  # Byte order
+            )
+            .rjust(32, b"\x00")
+        )
     else:
         # Extract the x and y coordinates from the public key
-        x = key.private_numbers().public_numbers.x.to_bytes(
-            (key.private_numbers().public_numbers.x.bit_length() + 7)
-            // 8,  # Number of bytes needed
-            "big",  # Byte order
-        ).rjust(32, b'\x00')
+        x = (
+            key.private_numbers()
+            .public_numbers.x.to_bytes(
+                (key.private_numbers().public_numbers.x.bit_length() + 7)
+                // 8,  # Number of bytes needed
+                "big",  # Byte order
+            )
+            .rjust(32, b"\x00")
+        )
 
-        y = key.private_numbers().public_numbers.y.to_bytes(
-            (key.private_numbers().public_numbers.y.bit_length() + 7)
-            // 8,  # Number of bytes needed
-            "big",  # Byte order
-        ).rjust(32, b'\x00')
+        y = (
+            key.private_numbers()
+            .public_numbers.y.to_bytes(
+                (key.private_numbers().public_numbers.y.bit_length() + 7)
+                // 8,  # Number of bytes needed
+                "big",  # Byte order
+            )
+            .rjust(32, b"\x00")
+        )
 
     return (curve_identifier, x, y)
