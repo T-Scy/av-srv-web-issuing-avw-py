@@ -40,17 +40,6 @@ class ConfCountries:
             ],
             "dynamic_R2": cfgserv.service_url + "dynamic/form_R2",
         },
-        "AV2": {
-            "name": "Non-Trusted Issuer",
-            "privkey": cfgserv.privKey_path + "/bak/AgeVerificationDS-001.pem",
-            "privkey_passwd": None,  # None or bytes
-            "cert": cfgserv.trusted_CAs_path + "/bak/AgeVerificationDS-001_cert.der",
-            "un_distinguishing_sign": "AV",
-            "supported_credentials": [
-                "eu.europa.ec.eudi.age_verification_mdoc",
-            ],
-            "dynamic_R2": cfgserv.service_url + "dynamic/form_R2",
-        },
         "PT": {
             "name": "Portugal",
             "privkey": cfgserv.privKey_path + "AgeVerificationDS-0001_PT.pem",

@@ -653,23 +653,23 @@ def token():
 
         session_id = getSessionId_authCode(req_args["code"])
 
-        cfgservice.app_logger.info(
+        """ cfgservice.app_logger.info(
             ", Session ID: "
             + session_id
             + ", "
             + "Authorization Token Request, Payload: "
             + str(request.form.to_dict())
-        )
+        ) """
 
         response = service_endpoint(current_app.server.get_endpoint("token"))
 
-        cfgservice.app_logger.info(
+        """ cfgservice.app_logger.info(
             ", Session ID: "
             + session_id
             + ", "
             + "Authorization Token Response, Payload: "
             + str(json.loads(response.get_data()))
-        )
+        ) """
 
         response_json = json.loads(response.get_data())
 

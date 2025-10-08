@@ -17,7 +17,7 @@
 ###############################################################################
 """
 
-This config_service.py contains configuration data for the Age Verification service. 
+This config_service.py contains configuration data for the Age Verification service.
 
 NOTE: You should only change it if you understand what you're doing.
 """
@@ -31,7 +31,7 @@ import os
 class ConfService:
     # ------------------------------------------------------------------------------------------------
     # Age verification service URL
-    service_url = os.getenv("SERVICE_URL", "https://issuer.ageverification.dev/")
+    service_url = os.getenv("SERVICE_URL", "https://issuer.dev.ageverification.dev/")
     # service_url = "https://127.0.0.1:5000/"
 
     wallet_test_url = os.getenv("WALLET_TEST_URL", "https://tester.issuer.ageverification.dev/")
@@ -94,7 +94,6 @@ class ConfService:
     # QEAA issuing Authority
     qeaa_issuing_authority = "Test QEAA issuer"
 
-
     # OIDC4VC URL for initial page
     oidc = service_url + ".well-known/openid-credential-issuer"
 
@@ -117,8 +116,7 @@ class ConfService:
     }
 
     auth_method_supported_credencials = {
-        "dynamic_login": [
-        ],
+        "dynamic_login": [],
         "country_selection": [
             "eu.europa.ec.eudi.age_verification_mdoc",
         ],
