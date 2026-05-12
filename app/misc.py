@@ -22,6 +22,7 @@ Its main goal is to issue the PID and MDL in cbor/mdoc (ISO 18013-5 mdoc) and SD
 
 This misc.py file includes different miscellaneous functions.
 """
+
 # Standard library imports
 import base64
 import datetime
@@ -45,7 +46,6 @@ from flask.helpers import make_response
 # Local/project-specific imports
 from app import oidc_metadata
 from app import trusted_CAs
-from app_config.config_service import ConfService as cfgservice
 from redirect_func import url_get
 
 

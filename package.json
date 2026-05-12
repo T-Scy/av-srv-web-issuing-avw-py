@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:eu-digital-identity-wallet/eudi-srv-web-issuing-eudiw-py.git"
+    "url": "git+https://github.com/eu-digital-identity-wallet/av-srv-web-issuing-avw-py.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/eu-digital-identity-wallet/eudi-srv-web-issuing-eudiw-py/issues"
+    "url": "https://github.com/eu-digital-identity-wallet/av-srv-web-issuing-avw-py/issues"
   },
-  "homepage": "https://github.com/eu-digital-identity-wallet/eudi-srv-web-issuing-eudiw-py#readme",
+  "homepage": "https://github.com/eu-digital-identity-wallet/av-srv-web-issuing-avw-py#readme",
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",

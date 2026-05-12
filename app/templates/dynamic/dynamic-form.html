@@ -66,6 +66,30 @@
         </label>
     </div>
 
+    {% elif attr.type == 'list_string' %}
+    <div class="p-4 border border-gray-200 rounded-md space-y-4 mb-4 list-string-container" data-list-name="{{ name }}">
+        <h3 class="text-lg font-semibold text-gray-800">{{ name | replace('_', ' ') | title }}</h3>
+        <div class="list-string-items-wrapper space-y-2">
+            <div class="list-string-item flex items-center gap-2">
+                <input type="text" 
+                    name="{{ current_name }}[]" 
+                    class="flex-1 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter {{ name | replace('_', ' ') }}"
+                    {% if attr.get('mandatory') %}required{% endif %}>
+            </div>
+        </div>
+        
+        {# Add Item Button #}
+        {% if attr.get('cardinality', {}).get('max') != 1 %}
+        <button type="button" 
+            class="add-string-item text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+            data-parent-name="{{ name }}"
+            data-current-name="{{ current_name }}">
+            + Add {{ name | replace('_', ' ') | title }}
+        </button>
+        {% endif %}
+    </div>
+
     {# List Type (Recursive & Conditional Logic) #}
     {% elif attr.type == 'list' %}
     <div class="p-4 border border-gray-200 rounded-md space-y-4 mb-4 list-container" data-list-name="{{ name }}" {% if
@@ -284,14 +308,18 @@
     </div>
 
     <script>
+        // Helper function to generate HTML for a new list item recursively.
+        // It clones the first item from a hidden template, updates indices, and returns it.
         function cloneAndPrepareListItem(templateNode, newIndex, namePrefix) {
             const clone = templateNode.cloneNode(true);
             clone.querySelectorAll('input, select').forEach(input => {
                 const oldName = input.getAttribute('name');
                 if (oldName) {
+                    // This regex replaces the first number in brackets e.g., name[0] -> name[1]
                     const newName = oldName.replace(/\[\d+\]/, `[${newIndex}]`);
                     input.setAttribute('name', newName);
                 }
+                // Reset values for the new item
                 if (input.type === 'checkbox' || input.type === 'radio') {
                     input.checked = false;
                 } else {
@@ -301,17 +329,25 @@
             return clone;
         }
 
+
         document.addEventListener('DOMContentLoaded', function () {
+            // =======================================================
+            // Main delegated event listener for all dynamic actions
+            // =======================================================
             document.addEventListener('click', function (event) {
 
+                // --- Handle Adding a new item to a list ---
                 if (event.target.classList.contains('add-item')) {
                     const button = event.target;
                     const listContainer = button.closest('.list-container');
                     const wrapper = listContainer.querySelector('.list-items-wrapper');
                     const newIndex = wrapper.querySelectorAll(':scope > .list-item').length;
+
                     const templateItem = wrapper.querySelector('.list-item');
                     if (!templateItem) return;
+
                     const newItem = cloneAndPrepareListItem(templateItem, newIndex, button.dataset.namePrefix);
+
                     const removeBtn = document.createElement('button');
                     removeBtn.type = 'button';
                     if (listContainer.dataset.listName === 'capacities') {
@@ -321,27 +357,68 @@
                         removeBtn.className = 'remove-list-item text-xs text-red-500 hover:text-red-700 mt-2 font-semibold';
                         removeBtn.textContent = 'Remove';
                     }
+
                     newItem.appendChild(removeBtn);
+
                     wrapper.appendChild(newItem);
                 }
 
+                // --- Handle Removing an item from a list ---
                 if (event.target.classList.contains('remove-list-item')) {
                     event.target.closest('.list-item').remove();
                 }
+                
+                // --- Handle Adding a new string item to list_string ---
+                if (event.target.classList.contains('add-string-item')) {
+                    const button = event.target;
+                    const container = button.closest('.list-string-container');
+                    const wrapper = container.querySelector('.list-string-items-wrapper');
+                    const currentName = button.dataset.currentName;
+                    
+                    const newItem = document.createElement('div');
+                    newItem.className = 'list-string-item flex items-center gap-2';
+                    newItem.innerHTML = `
+                        <input type="text" 
+                            name="${currentName}[]" 
+                            class="flex-1 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Enter value">
+                        <button type="button" 
+                            class="remove-string-item text-red-500 hover:text-red-700 px-3 py-2">
+                            &times;
+                        </button>
+                    `;
+                    wrapper.appendChild(newItem);
+                }
 
+                // --- Handle Removing a string item from list_string ---
+                if (event.target.classList.contains('remove-string-item')) {
+                    const item = event.target.closest('.list-string-item');
+                    const wrapper = item.closest('.list-string-items-wrapper');
+                    
+                    // Only remove if there's more than one item
+                    if (wrapper.querySelectorAll('.list-string-item').length > 1) {
+                        item.remove();
+                    }
+                }
+                
+                // --- Handle toggling choices like 'place_of_work' ---
                 const toggleOption = event.target.closest('.toggle-option input[type="radio"]');
                 if (toggleOption) {
                     const container = toggleOption.closest('.list-item');
                     const optionName = toggleOption.dataset.optionName;
+
                     container.querySelectorAll('.sub-container').forEach(sc => {
                         const isSelected = sc.dataset.optionName === optionName;
+                        // Toggle visibility
                         sc.classList.toggle('hidden', !isSelected);
+                        // Enable/disable inputs to ensure only selected data is submitted
                         sc.querySelectorAll('input, select, button').forEach(el => el.disabled = !isSelected);
                     });
                 }
 
                 const toggleInput = event.target.closest('.toggle-input');
                 if (toggleInput) {
+                    // This finds the hidden input that came just before the label for the toggle.
                     const hiddenInput = toggleInput.closest('label').previousElementSibling;
                     if (hiddenInput && hiddenInput.type === 'hidden') {
                         hiddenInput.value = toggleInput.checked ? 'true' : 'false';
@@ -349,6 +426,7 @@
                 }
             });
 
+            // Initialize choice-based sections on page load
             document.querySelectorAll('.toggle-group').forEach(group => {
                 const checkedRadio = group.querySelector('input[type="radio"]:checked');
                 if (checkedRadio) {
@@ -407,6 +485,7 @@
                 });
             }
 
+            // --- Handle removing an optional attribute block ---
             document.addEventListener('click', function (event) {
                 if (event.target.classList.contains('remove-optional-btn')) {
                     const row = event.target.closest('.dynamic-attribute-row');
@@ -431,6 +510,7 @@
                     const container = fileInput.closest('.dynamic-attribute-row');
                     const uploadRadio = container.querySelector('input[type="radio"][value="Port3"]');
                     const previewContainer = container.querySelector('[id^="preview-"]');
+
                     if (file && uploadRadio) {
                         uploadRadio.checked = true;
                         if (previewContainer) {
@@ -483,25 +563,34 @@
             });
         });
 
-        // =======================================================
+         // =======================================================
         // Form Submission Validation
         // =======================================================
         function submitValidation() {
+            //at least one of validation
             document.querySelectorAll('.at-least-one-of-error').forEach(el => el.classList.add('hidden'));
+
             const containersToValidate = document.querySelectorAll('[data-at-least-one-of]');
             for (const container of containersToValidate) {
                 const fields = JSON.parse(container.dataset.atLeastOneOf);
+
+                // Use Array.some() to check if at least one field has a value
                 const isAnyFieldFilled = fields.some(fieldName => {
                     const input = container.querySelector(`[name$="[${fieldName}]"]`);
                     return input && input.value.trim() !== '';
                 });
+
                 if (!isAnyFieldFilled) {
                     const errorElement = container.querySelector('.at-least-one-of-error');
-                    if (errorElement) errorElement.classList.remove('hidden');
+                    if (errorElement) {
+                        errorElement.classList.remove('hidden');
+                    }
+                    // Scroll the error into view for better user experience
                     container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    return false;
+                    return false; // Prevent form submission
                 }
             }
+
             const fileInputs = document.querySelectorAll('.file-input');
             for (const fileInput of fileInputs) {
                 const radio = fileInput.closest('.dynamic-attribute-row').querySelector('input[type="radio"][value="Port3"]');
@@ -515,6 +604,7 @@
             return true;
         }
 
+        // Make functions globally accessible for inline event handlers
         window.submitValidation = submitValidation;
     </script>
 </body>
