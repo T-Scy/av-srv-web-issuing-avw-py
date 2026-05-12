@@ -71,7 +71,7 @@ To run the AV Issuer Front End, please follow these simple steps (some of which 
     pip install -r app/requirements.txt
     ```
 
-6. Setup env
+6. Setup config
    
    -  Copy ```.frontend_config_example.yaml``` to ```etc/issuer_config/frontend_config_example.yaml``` and modify variables.
 

@@ -131,7 +131,7 @@ def create_app(test_config=None):
     def favicon():
         return send_from_directory("static/images", "favicon.ico")
 
-    @app.route("ic-logo.svg")
+    @app.route("/ic-logo.svg")
     def logo():
         return send_from_directory("static/images", "ic-logo.svg")
 
