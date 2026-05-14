@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 ![Proof of age attestations for all Europeans - An age verification solution for EU citizens and residents](images/top-banner-av.png)
 
 
-# Age Verification Issuer
+# Age Verification Issuer Front End
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Last Commit](https://img.shields.io/github/last-commit/eu-digital-identity-wallet/av-app-android-wallet-ui?style=flat)](/../../commits)
@@ -19,7 +19,8 @@ the [Age Verification Solution Technical Specification](https://github.com/eu-di
 
 ### Overview
 
-The Age Verification (AV) Issuer is an implementation of a (Q)EAA Provider service, following the [Age Verification Specification](https://ageverification.dev/Technical%20Specification/architecture-and-technical-specifications/). It is based on release 0.9.4 of the [EUDI Issuer](https://github.com/eu-digital-identity-wallet/eudi-srv-web-issuing-frontend-eudiw-py).
+The Age Verification (AV) Issuer Front End is an implementation of a (Q)EAA Provider service, following the [Age Verification Specification](https://ageverification.dev/Technical%20Specification/architecture-and-technical-specifications/). It is based on release 0.9.4 of the [EUDI Issuer Front End](https://github.com/eu-digital-identity-wallet/eudi-srv-web-issuing-frontend-eudiw-py) and requires the setup of [EUDI Issuer Back End](https://github.com/eu-digital-identity-wallet/eudi-srv-web-issuing-eudiw-py) as well as 
+[EUDI Issuer Authorization Server](https://github.com/eu-digital-identity-wallet/eudi-srv-issuer-oidc-py).
 
 
 The service provides support for the `mso_mdoc` format of the "Proof of Age" attestation with the namespace “eu.europa.ec.av.1”.
@@ -78,7 +79,7 @@ Click [here](install.md) for detailed instructions.
 
 ## 3. Frequently Asked Questions
 
-### A. Can I configure my local Age Verification Issuer so that it is available on the Internet?
+### A. Can I configure my local Age Verification Issuer Front End so that it is available on the Internet?
 
 Please see detailed instructions on how to make your [local AV Issuer available on the Internet install.md](./install.md#5-make-your-local-av-issuer-front-end-available-on-the-internet-optional), and on how to get a [free HTTPS certificate](./install.md#52-install-and-run-certbot-to-gef-a-free-https-certificate).
 
